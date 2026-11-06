@@ -5,35 +5,33 @@ import Alert from "../components/Alert";
 import styles from "../styles/profileStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "../config/axios";
-import { PROFILE_URL } from "../config/urls";
+import { PROFILE_URL, DELETE_PROFILE_URL } from "../config/urls";
 import { transformName } from "../config/helpers";
 import { Button, Icon } from "react-native-elements";
-import { DELETE_PROFILE_URL } from "../config/urls";
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 
 const ProfileScreen = (props) => {
-
   const navigation = useNavigation();
 
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
   const [alert, setAlert] = useState({
     title: "",
     message: "",
-    type: ""
-  })
+    type: "",
+  });
 
   useEffect(() => {
     __getProfile();
   }, []);
+
   const __getProfile = async () => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("access token");
       axios.defaults.headers.common["Authorization"] = "JWT " + token;
       const response = await axios.get(PROFILE_URL);
-      console.log(response);
       setUser(response.data);
       setLoading(false);
     } catch (error) {
@@ -42,50 +40,52 @@ const ProfileScreen = (props) => {
     }
   };
 
-  const showAlert = (title, message, type)=>{
+  const showAlert = (title, message, type) => {
     setAlert({
       title: title,
       message: message,
-      type, type
-    })
-    setVisible(true)
-  }
+      type: type,
+    });
+    setVisible(true);
+  };
 
-  const confirm = (type)=>{
+  const confirm = (type) => {
     showAlert(
-      type == "delete"? "أنت على وشك حذف" : "أنت على وشك تسجيل الخروج",
-      type == "delete"? "هل أنت متأكد من حذف حسابك" : "هل أنت متأكد من تسجيل الخروج",
-      type
-    )
-  }
+      type === "delete" ? "أنت على وشك حذف الحساب" : "أنت على وشك تسجيل الخروج",
+      type === "delete"
+        ? "هل أنت متأكد من حذف حسابك؟"
+        : "هل أنت متأكد من تسجيل الخروج؟",
+      type,
+    );
+  };
 
-  const handleAction = async()=>{
+  const handleAction = async () => {
     try {
-      if(alert.type == "delete"){
+      if (alert.type === "delete") {
         const token = await AsyncStorage.getItem("access token");
         axios.defaults.headers.common["Authorization"] = "JWT " + token;
-        response = await axios.delete(DELETE_PROFILE_URL)
-        console.log(response)
+        await axios.delete(DELETE_PROFILE_URL);
       }
       await AsyncStorage.clear();
-      navigation.navigate("Home")
-      setVisible(false)
+      navigation.navigate("Home");
+      setVisible(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      setVisible(false);
     }
-  }
+  };
 
   return (
     <ScrollView>
       <View style={styles.container}>
         <Loader loading={loading} />
-        <Alert 
-        visible={visible}
-        type={alert.type}
-        title={alert.type}
-        message={alert.message}
-        onClick = {()=>handleAction()}
-        onClose ={()=> setVisible(false)}
+        <Alert
+          visible={visible}
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          onClick={() => handleAction()}
+          onClose={() => setVisible(false)}
         />
         {user && (
           <View>
@@ -93,7 +93,7 @@ const ProfileScreen = (props) => {
               <View style={styles.userMetaContainer}>
                 <View style={styles.userAvtar}>
                   <Text style={styles.userAvtarText}>
-                    {transformName(user.name)}
+                    {transformName(user.name || "")}
                   </Text>
                 </View>
                 <View style={styles.userMeta}>
@@ -106,43 +106,54 @@ const ProfileScreen = (props) => {
                   name="edit"
                   type="font-awesome"
                   color="#f50"
-                  style={{ marginLeft: "5px" }}
-                  onPress={()=> navigation.navigate("UpdateProfile")}
+                  style={{ marginLeft: 5 }}
+                  onPress={() => navigation.navigate("UpdateProfile")}
                 />
-                <Icon name="trash" type="font-awesome" color="#f50" onPress={()=>confirm("delete")}/>
+                <Icon
+                  name="trash"
+                  type="font-awesome"
+                  color="#f50"
+                  onPress={() => confirm("delete")}
+                />
               </View>
             </View>
             {user.Profile && (
-                <View style={{ marginBottom: "50px" }}>
-                  <View style={styles.doctorInfo}>
-                    <View style={styles.infoCell}>
-                      <Text style={styles.infoTitle}>الاختصاص</Text>
-                      <Text style={styles.infoText}>
-                        {user.Profile.specialization}
-                      </Text>
-                    </View>
-                    <View style={styles.infoCell}>
-                      <Text style={styles.infoTitle}>العنوان</Text>
-                      <Text style={styles.infoText}>
-                        {user.Profile.address}
-                      </Text>
-                    </View>
-                    <View style={styles.infoCell}>
-                      <Text style={styles.infoTitle}>ساعات العمل</Text>
-                      <Text style={styles.infoText}>
-                        {user.Profile.workingHours}
-                      </Text>
-                    </View>
-                    <View style={styles.infoCell}>
-                      <Text style={styles.infoTitle}>الهاتف</Text>
-                      <Text style={styles.infoText}>{user.Profile.phone}</Text>
-                    </View>
+              <View style={{ marginBottom: 50 }}>
+                <View style={styles.doctorInfo}>
+                  <View style={styles.infoCell}>
+                    <Text style={styles.infoTitle}>الاختصاص</Text>
+                    <Text style={styles.infoText}>
+                      {user.Profile.specialization || "غير محدد"}
+                    </Text>
+                  </View>
+                  <View style={styles.infoCell}>
+                    <Text style={styles.infoTitle}>العنوان</Text>
+                    <Text style={styles.infoText}>
+                      {user.Profile.address || "غير محدد"}
+                    </Text>
+                  </View>
+                  <View style={styles.infoCell}>
+                    <Text style={styles.infoTitle}>ساعات العمل</Text>
+                    <Text style={styles.infoText}>
+                      {user.Profile.workingHours || "غير محدد"}
+                    </Text>
+                  </View>
+                  <View style={styles.infoCell}>
+                    <Text style={styles.infoTitle}>الهاتف</Text>
+                    <Text style={styles.infoText}>
+                      {user.Profile.phone || "غير محدد"}
+                    </Text>
                   </View>
                 </View>
-              )}
+              </View>
+            )}
           </View>
         )}
-        <Button buttonStyle={styles.logoutButton} title="تسجيل الخروج" onPress={()=>confirm("logout")}/>
+        <Button
+          buttonStyle={styles.logoutButton}
+          title="تسجيل الخروج"
+          onPress={() => confirm("logout")}
+        />
       </View>
     </ScrollView>
   );

@@ -1,5 +1,5 @@
 import { Formik } from "formik";
-import { object, string,  boolean } from "yup";
+import { object, string, boolean } from "yup";
 import { Input, CheckBox, Text, Button } from "react-native-elements";
 import styles from "../styles/authStyles";
 import MapViewComponent from "./MapViewComponent";
@@ -10,9 +10,7 @@ export function ProfileForm(props) {
     email: string()
       .email("يجب إدخال بريد إلكتروني صحيح")
       .required("البريد الإلكتروني مطلوب"),
-    password: string()
-      .min(5, "يجب أن تكون كلمة المرور 5 محارف أو أكثر")
-      .required("كلمة المرور مطلوبة"),
+    password: string().min(5, "يجب أن تكون كلمة المرور 5 محارف أو أكثر"),
     userType: boolean(),
     specialization: string().when("userType", {
       is: true,
@@ -31,19 +29,22 @@ export function ProfileForm(props) {
       then: (schema) => schema.required("يجب عليك إدخال ساعات العمل"),
     }),
   });
+
+  const profile = props.user?.Profile || {};
+
   return (
     <Formik
       initialValues={{
         name: props.user?.name || "",
         email: props.user?.email || "",
         password: "",
-        userType: props.user?.userType == "doctor",
-        specialization: props.user?.Profile?.specialization || "",
-        workingHours: props.user?.Profile?.workingHours || "",
-        phone: props.user?.Profile?.phone || "",
-        address: props.user?.Profile?.address || "",
-        latitude: props.user?.latitude || null,
-        longitude: props.user?.longitude || null,
+        userType: props.user?.userType === "doctor",
+        specialization: profile.specialization || "",
+        workingHours: profile.workingHours || "",
+        phone: profile.phone || "",
+        address: profile.address || "",
+        latitude: props.user?.latitude || profile.latitude || null,
+        longitude: props.user?.longitude || profile.longitude || null,
       }}
       validationSchema={validationSchema}
       onSubmit={(values) => props.submit(values)}
@@ -90,7 +91,7 @@ export function ProfileForm(props) {
 
           <Input
             name="password"
-            placeholder="كلمة المرور"
+            placeholder="كلمة المرور (اتركها فارغة إذا لم ترد تغييرها)"
             secureTextEntry
             value={values.password}
             onChangeText={handleChange("password")}
@@ -102,6 +103,7 @@ export function ProfileForm(props) {
               {errors.password}
             </Text>
           )}
+
           {props.checkBox && (
             <CheckBox
               title="أنا طبيب"
@@ -174,17 +176,23 @@ export function ProfileForm(props) {
                   {errors.phone}
                 </Text>
               )}
-              {values.latitude && 
-              <MapViewComponent location = {{latitude: values.latitude, longitude: values.longitude}}
-              latitude ={(value)=> setFieldValue("latitude", value)}
-              longitude ={(value)=> setFieldValue("longitude", value)}
-              />
-              }
+
+              {values.latitude && (
+                <MapViewComponent
+                  location={{
+                    latitude: values.latitude,
+                    longitude: values.longitude,
+                  }}
+                  latitude={(value) => setFieldValue("latitude", value)}
+                  longitude={(value) => setFieldValue("longitude", value)}
+                />
+              )}
             </>
           )}
+
           <Button
             title={props.buttonTitle}
-            style={{ marginTop: "20px" }}
+            containerStyle={{ marginTop: 20 }}
             onPress={handleSubmit}
             disabled={!isValid}
           />

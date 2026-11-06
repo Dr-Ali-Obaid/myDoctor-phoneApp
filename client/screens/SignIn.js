@@ -9,14 +9,13 @@ import Loader from "../components/Loader";
 import { useState } from "react";
 import axios from "../config/axios.js";
 import Alert from "../components/Alert";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 export default function SignInScreen(props) {
-
-  const navigation = useNavigation()
-  const [loading, setLoading] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [alert, setAlert] = useState({
     title: "",
     message: "",
@@ -30,33 +29,39 @@ export default function SignInScreen(props) {
     password: string().required("كلمة المرور مطلوبة"),
   });
 
-  const  __signIn = async(values)=>{
-    setLoading(true)
+  const __signIn = async (values) => {
+    setLoading(true);
     const body = {
       email: values.email,
-      password: values.password
-    }
+      password: values.password,
+    };
     try {
-      const response = await axios.post(SIGNIN_URL, body)
-      AsyncStorage.setItem('access token', response.data.accessToken)
-      navigation.navigate("Home")
-      setLoading(false)
+      const response = await axios.post(SIGNIN_URL, body);
+      AsyncStorage.setItem("access token", response.data.accessToken);
+      navigation.navigate("Home");
+      setLoading(false);
     } catch (error) {
-      console.log(error)
-      setLoading(false)
+      console.log(error);
+      setLoading(false);
       setAlert({
         title: "تنبيه",
         message: error.response.data.message,
         type: "alert",
-      })
-      setVisible(true)
+      });
+      setVisible(true);
     }
-  }
+  };
 
   return (
     <ScrollView>
-      <Loader loading={loading} title="جاري تسجيل الدخول"/>
-      <Alert visible={visible} title={alert.title} message={alert.message} type={alert.type} onClose={()=>setVisible(false)}/>
+      <Loader loading={loading} title="جاري تسجيل الدخول" />
+      <Alert
+        visible={visible}
+        title={alert.title}
+        message={alert.message}
+        type={alert.type}
+        onClose={() => setVisible(false)}
+      />
       <View style={styles.container}>
         <Icon raised name="user" type="font-awesome" color="#f50" size={50} />
         <Text h4>تسجيل الدخول</Text>
@@ -109,7 +114,7 @@ export default function SignInScreen(props) {
 
                 <Button
                   title="دخول"
-                  style={{ marginTop: "20px" }}
+                  style={{ marginTop: 20 }}
                   onPress={handleSubmit}
                   disabled={!isValid}
                 />

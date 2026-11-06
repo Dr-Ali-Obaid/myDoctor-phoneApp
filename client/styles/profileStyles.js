@@ -65,7 +65,7 @@ import { StyleSheet } from 'react-native';
       marginTop: 20,
       width: "100%",
       paddingVertical: 15,
-      marginTop: '50px',
+      marginTop: 50,
       backgroundColor: '#dc3545'
     },
     backButton: {
